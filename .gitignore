@@ -1,6 +1,6 @@
 .vscode/
 target/
 Cargo.lock
-**/*.hpp
-**/*.cpp
-**/*.exe
+examples/*.hpp
+examples/*.cpp
+examples/*.exe

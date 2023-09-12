@@ -45,6 +45,9 @@ pub(crate) fn tokenize(filename: &str, contents: Chars) -> Result<Vec<Token>> {
                     kind: match ident.as_str() {
                         "import" => TokenKind::Import,
                         "struct" => TokenKind::Struct,
+                        "enum" => TokenKind::Enum,
+                        "union" => TokenKind::Union,
+                        "tagged" => TokenKind::Tagged,
                         "fn" => TokenKind::Fn,
                         "mut" => TokenKind::Mut,
                         "var" => TokenKind::Var,

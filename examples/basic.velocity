@@ -10,10 +10,10 @@ fn add_circle(circles: &mut Array[Circle], circle: Circle) {
 
 fn print_total_area(circles: Array[Circle]) {
     var area = 0;
-    // for (c in circles) {
-    //     const r = c.r;
-    //     area = area + Math.PI * r * r;
-    // }
+    for (c in circles) {
+        const r = c.r;
+        // area = area + Math.PI * r * r;
+    }
     println("Total area: {}", area);
 }
 

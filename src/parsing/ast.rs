@@ -13,21 +13,22 @@ pub(crate) enum Statement {
         Option<Type>,
         Box<Statement>,
     ),
-    Variable(SpannedString, Type, Expression),
-    Constant(SpannedString, Type, Expression),
+    Variable(SpannedString, Option<Type>, Expression),
+    Constant(SpannedString, Option<Type>, Expression),
     For(SpannedString, Expression, Box<Statement>),
     Return(Option<Expression>),
     Expression(Expression),
+    Garbage,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) enum Expression {
     Identifier(SpannedString),
     String(SpannedString),
-    Character(SpannedString),
-    Integer(SpannedString),
-    FloatingPoint(SpannedString),
-    Boolean(SpannedString),
+    Character(Spanned<char>),
+    Integer(Spanned<i64>),
+    FloatingPoint(Spanned<f64>),
+    Boolean(Spanned<bool>),
     Binary(Box<Expression>, BinaryOperator, Box<Expression>),
     Unary(UnaryOperator, Box<Expression>),
     Call(Box<Expression>, Vec<Expression>),

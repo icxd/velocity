@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 use crate::{
     error::{Error, Result},
+    span::Spanned,
     tokenizer::token::{Token, TokenKind},
 };
 
@@ -23,12 +24,23 @@ impl Parser {
         }
     }
 
-    pub(crate) fn parse(&mut self) -> Result<Vec<Statement>> {
+    pub(crate) fn parse(&mut self) -> std::result::Result<Vec<Statement>, Vec<Error>> {
         let mut statements: Vec<Statement> = vec![];
+        let mut errors: Vec<Error> = vec![];
         while !self.is_at_end() {
-            statements.push(self.parse_statement()?);
+            match self.parse_statement() {
+                Ok(statement) => statements.push(statement),
+                Err(error) => {
+                    errors.push(error);
+                    unsafe { self.advance().unwrap_unchecked() };
+                }
+            }
         }
-        Ok(statements)
+        if errors.is_empty() {
+            Ok(statements)
+        } else {
+            Err(errors)
+        }
     }
 
     fn parse_statement(&mut self) -> Result<Statement> {
@@ -41,6 +53,10 @@ impl Parser {
             TokenKind::Const => self.parse_constant(),
             TokenKind::For => self.parse_for(),
             TokenKind::Return => self.parse_return(),
+            TokenKind::Eof => {
+                self.advance()?;
+                Ok(Statement::Garbage)
+            }
             _ => {
                 let expression = self.parse_expression()?;
                 self.consume(TokenKind::Semicolon)?;
@@ -52,7 +68,11 @@ impl Parser {
     fn parse_block(&mut self) -> Result<Statement> {
         let mut statements: Vec<Statement> = vec![];
         self.consume(TokenKind::OpenBrace)?;
-        while !self.check(TokenKind::CloseBrace) {
+        while !self.is_at_end() && !self.check(TokenKind::CloseBrace) {
+            if self.current()?.kind == TokenKind::Semicolon {
+                self.advance()?;
+                continue;
+            }
             statements.push(self.parse_statement()?);
         }
         self.consume(TokenKind::CloseBrace)?;
@@ -122,8 +142,12 @@ impl Parser {
         self.consume(TokenKind::Var)?;
         let identifier = self.consume(TokenKind::Identifier)?;
         let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
-        self.consume(TokenKind::Colon)?;
-        let type_ = self.parse_type()?;
+        let type_: Option<Type> = if self.check(TokenKind::Colon) {
+            self.consume(TokenKind::Colon)?;
+            Some(self.parse_type()?)
+        } else {
+            None
+        };
         self.consume(TokenKind::Equals)?;
         let expression = self.parse_expression()?;
         self.consume(TokenKind::Semicolon)?;
@@ -134,8 +158,12 @@ impl Parser {
         self.consume(TokenKind::Const)?;
         let identifier = self.consume(TokenKind::Identifier)?;
         let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
-        self.consume(TokenKind::Colon)?;
-        let type_ = self.parse_type()?;
+        let type_: Option<Type> = if self.check(TokenKind::Colon) {
+            self.consume(TokenKind::Colon)?;
+            Some(self.parse_type()?)
+        } else {
+            None
+        };
         self.consume(TokenKind::Equals)?;
         let expression = self.parse_expression()?;
         self.consume(TokenKind::Semicolon)?;
@@ -333,7 +361,7 @@ impl Parser {
                     } else {
                         None
                     };
-                    self.consume(TokenKind::Colon)?;
+                    self.consume(TokenKind::Equals)?;
                     let expression = self.parse_expression()?;
                     members.push((identifier, expression));
                     if !self.check(TokenKind::CloseBrace) {
@@ -363,20 +391,30 @@ impl Parser {
             Ok(Expression::String(spanned_string))
         } else if self.check(TokenKind::Character) {
             let character = self.consume(TokenKind::Character)?;
-            let spanned_character: SpannedString =
-                (character.value.clone(), character.span.clone());
+            let c = match character.value.chars().next() {
+                Some(c) => c,
+                None => unreachable!(),
+            };
+            let spanned_character: Spanned<char> = (c, character.span.clone());
             Ok(Expression::Character(spanned_character))
         } else if self.check(TokenKind::Integer) {
             let integer = self.consume(TokenKind::Integer)?;
-            let spanned_integer: SpannedString = (integer.value.clone(), integer.span.clone());
+            let value = integer.value.parse::<i64>().unwrap();
+            let spanned_integer: Spanned<i64> = (value, integer.span.clone());
             Ok(Expression::Integer(spanned_integer))
-        } else if self.check(TokenKind::Float) {
-            let float = self.consume(TokenKind::Float)?;
-            let spanned_float: SpannedString = (float.value.clone(), float.span.clone());
+        } else if self.check(TokenKind::FloatingPoint) {
+            let float = self.consume(TokenKind::FloatingPoint)?;
+            let value = float.value.parse::<f64>().unwrap();
+            let spanned_float: Spanned<f64> = (value, float.span.clone());
             Ok(Expression::FloatingPoint(spanned_float))
         } else if self.check(TokenKind::Boolean) {
             let boolean = self.consume(TokenKind::Boolean)?;
-            let spanned_boolean: SpannedString = (boolean.value.clone(), boolean.span.clone());
+            let value = match boolean.value.as_str() {
+                "true" => true,
+                "false" => false,
+                _ => unreachable!(),
+            };
+            let spanned_boolean: Spanned<bool> = (value, boolean.span.clone());
             Ok(Expression::Boolean(spanned_boolean))
         } else if self.check(TokenKind::OpenBracket) {
             self.advance()?;
@@ -487,11 +525,6 @@ impl Parser {
     fn advance(&mut self) -> Result<Token> {
         if !self.is_at_end() {
             self.index += 1;
-        } else {
-            return Err(Error::new(
-                format!("unexpected end of file"),
-                self.previous().span.clone(),
-            ));
         }
         Ok(self.previous().clone())
     }
@@ -510,7 +543,9 @@ impl Parser {
 
     fn consume(&mut self, kind: TokenKind) -> Result<Token> {
         if self.check(kind.clone()) {
-            Ok(self.advance()?.clone())
+            let token = self.current()?;
+            self.advance()?;
+            Ok(token)
         } else {
             Err(Error::new(
                 format!("expected '{}', but got {}", kind, self.current()?.kind),

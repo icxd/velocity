@@ -492,6 +492,9 @@ impl Parser {
         } else if self.check(TokenKind::Int) {
             self.advance()?;
             Ok(Type::Integer)
+        } else if self.check(TokenKind::UInt) {
+            self.advance()?;
+            Ok(Type::UnsignedInteger)
         } else if self.check(TokenKind::Float) {
             self.advance()?;
             Ok(Type::FloatingPoint)

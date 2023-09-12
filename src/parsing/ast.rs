@@ -42,6 +42,7 @@ pub(crate) enum Expression {
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Type {
     Integer,
+    UnsignedInteger,
     FloatingPoint,
     Boolean,
     Character,

@@ -1,1 +1,6 @@
-/target
+.vscode/
+target/
+Cargo.lock
+**/*.hpp
+**/*.cpp
+**/*.exe

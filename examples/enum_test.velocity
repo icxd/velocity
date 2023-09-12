@@ -1,0 +1,26 @@
+enum(uint) Type { A, B, C }
+
+struct A { a: int, b: int }
+struct B { a: int, b: int }
+struct C { a: int, b: int }
+
+union(tagged) MyTaggedUnion {
+    A,
+    B,
+    C,
+}
+
+union MyUnion {
+    a: A,
+    b: B,
+    c: C,
+}
+
+struct MyStruct {
+    type: Type,
+    data: MyTaggedUnion,
+}
+
+fn main() -> int {
+    return 0;
+}

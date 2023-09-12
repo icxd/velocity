@@ -7,6 +7,16 @@ pub(crate) enum Statement {
     Block(Vec<Statement>),
     Import(SpannedString),
     Struct(SpannedString, Vec<(SpannedString, Type)>),
+    Enum {
+        spanned_id: SpannedString,
+        base_type: Option<Type>,
+        variants: Vec<(SpannedString, Option<Expression>)>,
+    },
+    Union {
+        spanned_id: SpannedString,
+        tagged: bool,
+        variants: Vec<(Option<SpannedString>, Type)>,
+    },
     Function(
         SpannedString,
         Vec<(SpannedString, Type)>,

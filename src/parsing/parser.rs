@@ -48,6 +48,8 @@ impl Parser {
             TokenKind::OpenBrace => self.parse_block(),
             TokenKind::Import => self.parse_import(),
             TokenKind::Struct => self.parse_struct(),
+            TokenKind::Enum => self.parse_enum(),
+            TokenKind::Union => self.parse_union(),
             TokenKind::Fn => self.parse_function(),
             TokenKind::Var => self.parse_variable(),
             TokenKind::Const => self.parse_constant(),
@@ -105,6 +107,78 @@ impl Parser {
         }
         self.consume(TokenKind::CloseBrace)?;
         Ok(Statement::Struct(spanned_id, members))
+    }
+
+    fn parse_enum(&mut self) -> Result<Statement> {
+        self.consume(TokenKind::Enum)?;
+        let base_type: Option<Type> = if self.check(TokenKind::OpenParenthesis) {
+            self.consume(TokenKind::OpenParenthesis)?;
+            let type_ = self.parse_type()?;
+            self.consume(TokenKind::CloseParenthesis)?;
+            Some(type_)
+        } else {
+            None
+        };
+        let identifier = self.consume(TokenKind::Identifier)?;
+        let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+        self.consume(TokenKind::OpenBrace)?;
+        let mut variants: Vec<(SpannedString, Option<Expression>)> = vec![];
+        while !self.check(TokenKind::CloseBrace) {
+            let identifier = self.consume(TokenKind::Identifier)?;
+            let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+            let value = if self.check(TokenKind::Equals) {
+                self.consume(TokenKind::Equals)?;
+                Some(self.parse_expression()?)
+            } else {
+                None
+            };
+            variants.push((spanned_id, value));
+            if !self.check(TokenKind::CloseBrace) {
+                self.consume(TokenKind::Comma)?;
+            }
+        }
+        self.consume(TokenKind::CloseBrace)?;
+        Ok(Statement::Enum {
+            spanned_id,
+            base_type,
+            variants,
+        })
+    }
+
+    fn parse_union(&mut self) -> Result<Statement> {
+        self.consume(TokenKind::Union)?;
+        let tagged: bool = if self.check(TokenKind::OpenParenthesis) {
+            self.consume(TokenKind::OpenParenthesis)?;
+            self.consume(TokenKind::Tagged)?;
+            self.consume(TokenKind::CloseParenthesis)?;
+            true
+        } else {
+            false
+        };
+        let identifier = self.consume(TokenKind::Identifier)?;
+        let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+        self.consume(TokenKind::OpenBrace)?;
+        let mut variants: Vec<(Option<SpannedString>, Type)> = vec![];
+        while !self.check(TokenKind::CloseBrace) {
+            if tagged {
+                variants.push((None, self.parse_type()?));
+            } else {
+                let identifier = self.consume(TokenKind::Identifier)?;
+                let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+                self.consume(TokenKind::Colon)?;
+                let type_ = self.parse_type()?;
+                variants.push((Some(spanned_id), type_));
+            }
+            if !self.check(TokenKind::CloseBrace) {
+                self.consume(TokenKind::Comma)?;
+            }
+        }
+        self.consume(TokenKind::CloseBrace)?;
+        Ok(Statement::Union {
+            spanned_id,
+            tagged,
+            variants,
+        })
     }
 
     fn parse_function(&mut self) -> Result<Statement> {

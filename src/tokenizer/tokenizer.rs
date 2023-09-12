@@ -57,6 +57,7 @@ pub(crate) fn tokenize(filename: &str, contents: Chars) -> Result<Vec<Token>> {
                         "true" => TokenKind::Boolean,
                         "false" => TokenKind::Boolean,
                         "int" => TokenKind::Int,
+                        "uint" => TokenKind::UInt,
                         "float" => TokenKind::Float,
                         "bool" => TokenKind::Bool,
                         "char" => TokenKind::Char,
@@ -69,6 +70,125 @@ pub(crate) fn tokenize(filename: &str, contents: Chars) -> Result<Vec<Token>> {
             '0'..='9' => {
                 start = end + 1;
                 end += 1;
+
+                if let Some(c) = chars.peek() {
+                    if *c == '0' {
+                        chars.next();
+                        end += 1;
+                        match chars.peek() {
+                            Some('x') => {
+                                chars.next();
+                                end += 1;
+                                let mut number = String::new();
+                                number.push('0');
+                                number.push('x');
+
+                                while let Some(c) = chars.peek() {
+                                    match c {
+                                        '0'..='9' | 'a'..='f' | 'A'..='F' => {
+                                            number.push(*c);
+                                            chars.next();
+                                            end += 1;
+                                        }
+                                        _ => break,
+                                    }
+                                }
+
+                                tokens.push(Token {
+                                    kind: TokenKind::Integer,
+                                    value: number,
+                                    span: (filename.to_string().into(), (line, start)..(line, end)),
+                                });
+                            }
+                            Some('b') => {
+                                chars.next();
+                                end += 1;
+                                let mut number = String::new();
+                                number.push('0');
+                                number.push('b');
+
+                                while let Some(c) = chars.peek() {
+                                    match c {
+                                        '0' | '1' => {
+                                            number.push(*c);
+                                            chars.next();
+                                            end += 1;
+                                        }
+                                        _ => break,
+                                    }
+                                }
+
+                                tokens.push(Token {
+                                    kind: TokenKind::Integer,
+                                    value: number,
+                                    span: (filename.to_string().into(), (line, start)..(line, end)),
+                                });
+                            }
+                            _ => {
+                                let mut number = String::new();
+                                number.push('0');
+
+                                while let Some(c) = chars.peek() {
+                                    match c {
+                                        '0'..='9' => {
+                                            number.push(*c);
+                                            chars.next();
+                                            end += 1;
+                                        }
+                                        _ => break,
+                                    }
+                                }
+
+                                if let Some(c) = chars.peek() {
+                                    if *c == '.' {
+                                        number.push(*c);
+                                        chars.next();
+                                        end += 1;
+
+                                        while let Some(c) = chars.peek() {
+                                            match c {
+                                                '0'..='9' => {
+                                                    number.push(*c);
+                                                    chars.next();
+                                                    end += 1;
+                                                }
+                                                _ => break,
+                                            }
+                                        }
+
+                                        tokens.push(Token {
+                                            kind: TokenKind::FloatingPoint,
+                                            value: number,
+                                            span: (
+                                                filename.to_string().into(),
+                                                (line, start)..(line, end),
+                                            ),
+                                        });
+                                    } else {
+                                        tokens.push(Token {
+                                            kind: TokenKind::Integer,
+                                            value: number,
+                                            span: (
+                                                filename.to_string().into(),
+                                                (line, start)..(line, end),
+                                            ),
+                                        });
+                                    }
+                                } else {
+                                    tokens.push(Token {
+                                        kind: TokenKind::Integer,
+                                        value: number,
+                                        span: (
+                                            filename.to_string().into(),
+                                            (line, start)..(line, end),
+                                        ),
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
                 let mut number = String::new();
                 number.push(c);
 

@@ -23,6 +23,7 @@ pub(crate) enum TokenKind {
     Or,
     // Types
     Int,
+    UInt,
     Float,
     Bool,
     Char,
@@ -96,6 +97,7 @@ impl std::fmt::Display for TokenKind {
                 TokenKind::And => "and",
                 TokenKind::Or => "or",
                 TokenKind::Int => "int",
+                TokenKind::UInt => "uint",
                 TokenKind::Float => "float",
                 TokenKind::Bool => "bool",
                 TokenKind::Char => "char",

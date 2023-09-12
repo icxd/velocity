@@ -70,25 +70,6 @@ impl TokenKind {
             _ => false,
         }
     }
-
-    pub(crate) fn is_binary_operator(&self) -> bool {
-        match self {
-            TokenKind::Plus
-            | TokenKind::Minus
-            | TokenKind::Asterisk
-            | TokenKind::Slash
-            | TokenKind::Percent
-            | TokenKind::EqualsEquals
-            | TokenKind::BangEquals
-            | TokenKind::LessThan
-            | TokenKind::LessThanEquals
-            | TokenKind::GreaterThan
-            | TokenKind::GreaterThanEquals
-            | TokenKind::And
-            | TokenKind::Or => true,
-            _ => false,
-        }
-    }
 }
 
 impl std::fmt::Display for TokenKind {

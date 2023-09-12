@@ -34,6 +34,63 @@ fn codegen_statement(statement: &Statement) -> Result<(String, String)> {
             );
             Ok((String::new(), hpp))
         }
+        Statement::Enum {
+            spanned_id,
+            base_type,
+            variants,
+        } => {
+            let mut hpp_variants: String = String::new();
+            for variant in variants {
+                hpp_variants.push_str(&format!("    {}", variant.0 .0));
+                if let Some(expression) = &variant.1 {
+                    hpp_variants.push_str(&format!(" = {}", codegen_expression(expression)?));
+                }
+                hpp_variants.push_str(",\n");
+            }
+            hpp = format!(
+                "enum class {}{} {{\n{}}};\n",
+                spanned_id.0.clone(),
+                if let None = base_type {
+                    String::new()
+                } else {
+                    format!(" : {}", codegen_type(base_type.as_ref().unwrap()))
+                },
+                hpp_variants.clone()
+            );
+            Ok((String::new(), hpp))
+        }
+        Statement::Union {
+            spanned_id,
+            tagged,
+            variants,
+        } => {
+            if *tagged {
+                let mut code = format!("using {} = TaggedUnion<", spanned_id.0.clone());
+                for (i, variant) in variants.iter().enumerate() {
+                    code.push_str(&codegen_type(&variant.1));
+                    if i != variants.len() - 1 {
+                        code.push_str(", ");
+                    }
+                }
+                code.push_str(">;\n");
+                hpp = code;
+            } else {
+                let mut hpp_variants: String = String::new();
+                for variant in variants {
+                    hpp_variants.push_str(&format!("    {}", codegen_type(&variant.1)));
+                    if let Some(spanned_id) = &variant.0 {
+                        hpp_variants.push_str(&format!(" {}", spanned_id.0));
+                    }
+                    hpp_variants.push_str(";\n");
+                }
+                hpp = format!(
+                    "union {} {{\n{}}};\n",
+                    spanned_id.0.clone(),
+                    hpp_variants.clone()
+                );
+            }
+            Ok((String::new(), hpp))
+        }
         Statement::Function(spanned_id, parameters, ret, body) => {
             let mut hpp_parameters: String = String::new();
             for (i, parameter) in parameters.iter().enumerate() {

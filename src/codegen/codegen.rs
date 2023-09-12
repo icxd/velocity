@@ -217,6 +217,7 @@ fn codegen_expression(expr: &Expression) -> Result<String> {
 fn codegen_type(ty: &Type) -> String {
     match ty {
         Type::Integer => "int".to_string(),
+        Type::UnsignedInteger => "unsigned int".to_string(),
         Type::FloatingPoint => "float".to_string(),
         Type::Character => "char".to_string(),
         Type::Boolean => "bool".to_string(),

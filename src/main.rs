@@ -20,10 +20,18 @@ fn main() {
     match tokens {
         Ok(tokens) => {
             let mut parser: Parser = Parser::new(filename.into(), tokens);
-            let ast: Result<Vec<Statement>, Error> = parser.parse();
+            let ast: Result<Vec<Statement>, Vec<Error>> = parser.parse();
             match ast {
-                Ok(ast) => println!("{:?}", ast),
-                Err(error) => println!("{}", error),
+                Ok(ast) => {
+                    for statement in ast {
+                        println!("{:?}", statement);
+                    }
+                }
+                Err(error) => {
+                    for error in error {
+                        println!("{}", error);
+                    }
+                }
             }
         }
         Err(error) => println!("{}", error),

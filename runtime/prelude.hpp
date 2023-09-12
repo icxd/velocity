@@ -4,7 +4,10 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <variant>
 #include <vector>
+
+template <typename... Args> using TaggedUnion = std::variant<Args...>;
 
 template <typename T> struct Array : std::vector<T> {
     void push(T t) { this->push_back(t); }

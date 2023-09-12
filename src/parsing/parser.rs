@@ -54,8 +54,9 @@ impl Parser {
             TokenKind::For => self.parse_for(),
             TokenKind::Return => self.parse_return(),
             TokenKind::Eof => {
+                let span = self.current()?.span.clone();
                 self.advance()?;
-                Ok(Statement::Garbage)
+                Ok(Statement::Garbage(span))
             }
             _ => {
                 let expression = self.parse_expression()?;

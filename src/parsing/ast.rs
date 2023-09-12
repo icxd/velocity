@@ -1,4 +1,4 @@
-use crate::span::Spanned;
+use crate::span::{Span, Spanned};
 
 pub(crate) type SpannedString = Spanned<String>;
 
@@ -18,7 +18,7 @@ pub(crate) enum Statement {
     For(SpannedString, Expression, Box<Statement>),
     Return(Option<Expression>),
     Expression(Expression),
-    Garbage,
+    Garbage(Span),
 }
 
 #[derive(Debug, Clone)]

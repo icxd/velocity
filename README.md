@@ -22,11 +22,7 @@ Velocity is a general purpose language for building high performance application
 
 ## 👋 Hello, World!
 
-<div style="width:50%;">
-
-![hello world](images/hello_world.png)
-
-</div>
+![hello world](images/hello_world.png | width=50%)
 
 ## 📚 Documentation
 

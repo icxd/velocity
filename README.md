@@ -22,12 +22,7 @@ Velocity is a general purpose language for building high performance application
 
 ## 👋 Hello, World!
 
-```rust
-fn main() -> int {
-    println("Hello, World!");
-    return 0;
-}
-```
+![hello world](images/hello_world.png)
 
 ## 📚 Documentation
 

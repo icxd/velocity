@@ -22,5 +22,10 @@ struct MyStruct {
 }
 
 fn main() -> int {
+    const x: MyStruct = MyStruct {
+        type = Type.A,
+        data = MyTaggedUnion.A(A{1, 2}),
+    };
+
     return 0;
 }

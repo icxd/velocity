@@ -6,14 +6,20 @@ pub(crate) type SpannedString = Spanned<String>;
 pub(crate) enum Statement {
     Block(Vec<Statement>),
     Import(SpannedString),
-    Struct(SpannedString, Vec<(SpannedString, Type)>),
+    Struct {
+        spanned_id: SpannedString,
+        generic_parameters: Vec<SpannedString>,
+        fields: Vec<(SpannedString, Type)>,
+    },
     Enum {
         spanned_id: SpannedString,
+        generic_parameters: Vec<SpannedString>,
         base_type: Option<Type>,
         variants: Vec<(SpannedString, Option<Expression>)>,
     },
     Union {
         spanned_id: SpannedString,
+        generic_parameters: Vec<SpannedString>,
         tagged: bool,
         variants: Vec<(Option<SpannedString>, Type)>,
     },
@@ -47,6 +53,27 @@ pub(crate) enum Expression {
     Assignment(Box<Expression>, Box<Expression>),
     StructLiteral(Box<Expression>, Vec<(Option<SpannedString>, Expression)>),
     ArrayLiteral(Vec<Expression>),
+}
+
+impl Expression {
+    pub(crate) fn span(&self) -> Span {
+        match self {
+            Expression::Identifier(spanned) => spanned.1.clone(),
+            Expression::String(spanned) => spanned.1.clone(),
+            Expression::Character(spanned) => spanned.1.clone(),
+            Expression::Integer(spanned) => spanned.1.clone(),
+            Expression::FloatingPoint(spanned) => spanned.1.clone(),
+            Expression::Boolean(spanned) => spanned.1.clone(),
+            Expression::Binary(lhs, _, _) => lhs.span(),
+            Expression::Unary(_, expr) => expr.span(),
+            Expression::Call(expr, _) => expr.span(),
+            Expression::Index(expr, _) => expr.span(),
+            Expression::Member(expr, _) => expr.span(),
+            Expression::Assignment(lhs, _) => lhs.span(),
+            Expression::StructLiteral(expr, _) => expr.span(),
+            Expression::ArrayLiteral(_) => unimplemented!(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]

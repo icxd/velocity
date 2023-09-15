@@ -4,6 +4,7 @@ use std::fmt::Display;
 
 pub(crate) type Result<T> = std::result::Result<T, Error>;
 
+#[derive(Clone)]
 pub(crate) struct Error {
     message: String,
     span: Span,

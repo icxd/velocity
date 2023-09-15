@@ -7,7 +7,23 @@
 #include <variant>
 #include <vector>
 
-template <typename... Args> using TaggedUnion = std::variant<Args...>;
+template <typename T> struct Formatter;
+
+template <typename... Args>
+struct TaggedUnion : std::variant<Args>, Formatter<TaggedUnion<Args>> {
+    using std::variant<Args>::variant;
+
+    template <typename T> T &get() { return std::get<T>(*this); }
+    template <typename T> const T &get() const { return std::get<T>(*this); }
+
+    std::string format() const {
+        std::stringstream ss;
+        ss << "TaggedUnion{";
+        std::visit([&](auto &&arg) { ss << "arg = " << arg; }, *this);
+        ss << "}";
+        return ss.str();
+    }
+};
 
 template <typename T> struct Array : std::vector<T> {
     void push(T t) { this->push_back(t); }
@@ -86,4 +102,23 @@ template <typename... Args> void println(std::string fmt, Args... args) {
         }
     }
     std::cout << ss.str() << std::endl;
+}
+
+template <typename T> struct Formatter {
+    std::string format(T t) { return std::to_string(t); }
+
+    friend std::ostream &operator<<(std::ostream &os, const T &t) {
+        return os << t.format();
+    }
+
+    Formatter() = default;
+    Formatter(const Formatter &) = default;
+    Formatter(Formatter &&) = default;
+    Formatter &operator=(const Formatter &) = default;
+    Formatter &operator=(Formatter &&) = default;
+    virtual ~Formatter() = default;
+};
+
+template <typename T> std::string formatted(T t) {
+    return Formatter<T>().format(t);
 }

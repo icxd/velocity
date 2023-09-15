@@ -1,3 +1,5 @@
+import Math
+
 enum(uint) Type { A, B, C }
 
 struct A { a: int, b: int }
@@ -21,11 +23,20 @@ struct MyStruct {
     data: MyTaggedUnion,
 }
 
+struct Just[T] { value: T }
+struct Nothing {}
+union(tagged) Maybe[T] {
+    Just[T],
+    Nothing,
+}
+
 fn main() -> int {
     const x: MyStruct = MyStruct {
         type = Type.A,
-        data = MyTaggedUnion.A(A{1, 2}),
+        data = A{a = 1, b = 2},
     };
+
+    println("x.type = {}", x.type);
 
     return 0;
 }

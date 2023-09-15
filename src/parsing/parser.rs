@@ -93,6 +93,7 @@ impl Parser {
         self.consume(TokenKind::Struct)?;
         let identifier = self.consume(TokenKind::Identifier)?;
         let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+        let generic_parameters = self.parse_generic_parameters()?;
         self.consume(TokenKind::OpenBrace)?;
         let mut members: Vec<(SpannedString, Type)> = vec![];
         while !self.check(TokenKind::CloseBrace) {
@@ -106,7 +107,11 @@ impl Parser {
             }
         }
         self.consume(TokenKind::CloseBrace)?;
-        Ok(Statement::Struct(spanned_id, members))
+        Ok(Statement::Struct {
+            spanned_id,
+            generic_parameters,
+            fields: members,
+        })
     }
 
     fn parse_enum(&mut self) -> Result<Statement> {
@@ -121,6 +126,7 @@ impl Parser {
         };
         let identifier = self.consume(TokenKind::Identifier)?;
         let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+        let generic_parameters = self.parse_generic_parameters()?;
         self.consume(TokenKind::OpenBrace)?;
         let mut variants: Vec<(SpannedString, Option<Expression>)> = vec![];
         while !self.check(TokenKind::CloseBrace) {
@@ -140,6 +146,7 @@ impl Parser {
         self.consume(TokenKind::CloseBrace)?;
         Ok(Statement::Enum {
             spanned_id,
+            generic_parameters,
             base_type,
             variants,
         })
@@ -157,6 +164,7 @@ impl Parser {
         };
         let identifier = self.consume(TokenKind::Identifier)?;
         let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+        let generic_parameters = self.parse_generic_parameters()?;
         self.consume(TokenKind::OpenBrace)?;
         let mut variants: Vec<(Option<SpannedString>, Type)> = vec![];
         while !self.check(TokenKind::CloseBrace) {
@@ -176,6 +184,7 @@ impl Parser {
         self.consume(TokenKind::CloseBrace)?;
         Ok(Statement::Union {
             spanned_id,
+            generic_parameters,
             tagged,
             variants,
         })
@@ -265,6 +274,23 @@ impl Parser {
             None
         };
         Ok(Statement::Return(expression))
+    }
+
+    fn parse_generic_parameters(&mut self) -> Result<Vec<SpannedString>> {
+        let mut generic_parameters: Vec<SpannedString> = vec![];
+        if self.check(TokenKind::OpenBracket) {
+            self.advance()?;
+            while !self.check(TokenKind::CloseBracket) {
+                let identifier = self.consume(TokenKind::Identifier)?;
+                let spanned_id: SpannedString = (identifier.value.clone(), identifier.span.clone());
+                generic_parameters.push(spanned_id);
+                if !self.check(TokenKind::CloseBracket) {
+                    self.consume(TokenKind::Comma)?;
+                }
+            }
+            self.consume(TokenKind::CloseBracket)?;
+        }
+        Ok(generic_parameters)
     }
 
     fn parse_expression(&mut self) -> Result<Expression> {

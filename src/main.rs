@@ -1,11 +1,13 @@
-use codegen::codegen::codegen;
+use codegen::codegen::{codegen, get_symbols, CodegenState};
 use error::Error;
 use parsing::{ast::Statement, parser::Parser};
 use tokenizer::{token::Token, tokenizer::tokenize};
 
 mod codegen;
 mod error;
+// mod llvm;
 mod parsing;
+mod semantic;
 mod span;
 mod tokenizer;
 
@@ -47,7 +49,13 @@ fn main() {
                 Ok(ast) => {
                     let only_filename: Vec<&str> = filename.split('/').collect();
                     let only_filename: String = only_filename[only_filename.len() - 1].to_string();
-                    let result: Result<(String, String), Error> = codegen(&only_filename, ast);
+                    let state: &mut CodegenState = &mut CodegenState::new();
+                    if let Err(e) = get_symbols(state, &ast) {
+                        println!("{}", e);
+                        return;
+                    }
+                    let result: Result<(String, String), Error> =
+                        codegen(state, &only_filename, ast);
                     match result {
                         Ok((cpp, hpp)) => {
                             std::fs::write(format!("{}.cpp", filename.clone()), cpp).unwrap();

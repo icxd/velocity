@@ -9,21 +9,7 @@
 
 template <typename T> struct Formatter;
 
-template <typename... Args>
-struct TaggedUnion : std::variant<Args>, Formatter<TaggedUnion<Args>> {
-    using std::variant<Args>::variant;
-
-    template <typename T> T &get() { return std::get<T>(*this); }
-    template <typename T> const T &get() const { return std::get<T>(*this); }
-
-    std::string format() const {
-        std::stringstream ss;
-        ss << "TaggedUnion{";
-        std::visit([&](auto &&arg) { ss << "arg = " << arg; }, *this);
-        ss << "}";
-        return ss.str();
-    }
-};
+template <typename... Args> using TaggedUnion = std::variant<Args...>;
 
 template <typename T> struct Array : std::vector<T> {
     void push(T t) { this->push_back(t); }

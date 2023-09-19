@@ -1,25 +1,21 @@
-import Math
+import std/io
+import std/math as math
 
-struct Circle {
+struct Circle:
     r: float
-}
 
-fn add_circle(circles: &mut Array[Circle], circle: Circle) {
-    circles.push(circle);
-}
+fn add_circle(circles: &mut Array[Circle], circle: Circle):
+    circles.push(circle)
 
-fn print_total_area(circles: Array[Circle]) {
-    var area = 0;
-    for (c in circles) {
-        const r = c.r;
-        // area = area + Math.PI * r * r;
-    }
-    println("Total area: {}", area);
-}
+// fn print_total_area(circles: Array[Circle]):
+//     var area = 0
+//     for c in circles:
+//         const r = c.r
+//         area += math.PI * r * r
+//     io.println("Total area: {}", area)
 
-fn main() -> int {
-    var circles: Array[Circle] = [Circle{r = 1.0}, Circle{r = 2.0}];
-    add_circle(&mut circles, Circle{r = 3.0});
-    print_total_area(circles);
-    return 0;
-}
+// fn main() -> int:
+//     var circles: Array[Circle] = [Circle{r = 1.0}, Circle{r = 2.0}]
+//     add_circle(&mut circles, Circle{3.0})
+//     print_total_area(circles)
+//     return 0

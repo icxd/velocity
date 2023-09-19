@@ -38,7 +38,7 @@ impl Display for Error {
         ));
         out.push_str(&format!("{}\n", line));
         out.push_str(
-            format!("{}^{}", " ".repeat(start - 1), "~".repeat(end - start),)
+            format!("{}^{}", " ".repeat(start - 1), "~".repeat(end - start - 1),)
                 .green()
                 .to_string()
                 .as_str(),

@@ -1,42 +1,41 @@
 import Math
 
-enum(uint) Type { A, B, C }
+enum(uint) Type: A, B, C
 
-struct A { a: int, b: int }
-struct B { a: int, b: int }
-struct C { a: int, b: int }
+struct A:
+    a: int, b: int
+struct B:
+    a: int, b: int
+struct C:
+    a: int, b: int
 
-union(tagged) MyTaggedUnion {
+union(tagged) MyTaggedUnion:
     A,
     B,
     C,
-}
 
-union MyUnion {
+
+union MyUnion:
     a: A,
     b: B,
     c: C,
-}
 
-struct MyStruct {
+struct MyStruct:
     type: Type,
     data: MyTaggedUnion,
-}
 
-struct Just[T] { value: T }
-struct Nothing {}
-union(tagged) Maybe[T] {
+struct Just[T]: value: T
+struct Nothing
+union(tagged) Maybe[T]:
     Just[T],
     Nothing,
-}
 
-fn main() -> int {
+fn main() -> int:
     const x: MyStruct = MyStruct {
         type = Type.A,
         data = A{a = 1, b = 2},
-    };
+    }
 
-    println("x.type = {}", x.type);
+    println("x.type = {}", x.type)
 
-    return 0;
-}
+    return 0
